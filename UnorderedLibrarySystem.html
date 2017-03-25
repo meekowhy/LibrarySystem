@@ -76,7 +76,7 @@
 
 		'TEST5: the callback function for each library should run only once. ': function() {
 			var counter = 0;
-			librarySystem('test5', [], function() {
+			librarySystem('test5', ['a'], function(a) {
 					counter++;
 			});
 			librarySystem('test5');
