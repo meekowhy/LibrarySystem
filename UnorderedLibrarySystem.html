@@ -20,8 +20,8 @@
 					return libraryStorage[libraryName];
 				} else {
 					var arrayOfValues = libraryStorage[libraryName]['array'].map(function(currentValue) {
-                		return libraryStorage[currentValue];
-            		});
+                				return libraryStorage[currentValue];
+            					});
 					return libraryStorage[libraryName]['callback'].apply(null,arrayOfValues)
 				}
 			};
