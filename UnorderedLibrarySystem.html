@@ -1,0 +1,89 @@
+
+<script src="TinyTestMod.js"></script>
+<script>
+
+	(function() {
+
+		var libraryStorage = {}
+
+		function librarySystem(libraryName, array, callback) {
+			if (arguments.length > 1) {
+				if (array.length === 0) {
+					libraryStorage[libraryName] = callback();
+				} else {
+					libraryStorage[libraryName] = {};
+					libraryStorage[libraryName]['callback'] = callback;
+					libraryStorage[libraryName]['array'] = array;
+				};	
+			} else {
+				if (typeof libraryStorage[libraryName] !== 'object') {
+					return libraryStorage[libraryName];
+				} else {
+					var arrayOfValues = libraryStorage[libraryName]['array'].map(function(currentValue) {
+                		return libraryStorage[currentValue];
+            		});
+					return libraryStorage[libraryName]['callback'].apply(null,arrayOfValues)
+				}
+			};
+	}
+
+		window.librarySystem = librarySystem;
+	
+	})()
+
+
+
+    tests({
+        
+        'TEST1: it should run a callback function': function() {
+        	librarySystem('test1', [], function() {
+        		var test1 = 'ok';
+        		eq(test1,'ok');
+			});
+
+        },
+
+        'TEST2: it should save a callback`s return value and return it back if provided with only 1 argument': function() {
+        	librarySystem('test2', [], function() {
+  				return 'value';	 
+			});
+            eq(librarySystem('test2'),'value');
+        },
+
+        'TEST3: it should run a callback with array items values as arguments': function() {
+        	librarySystem('testKey', [], function() {
+        		return 1;
+        	});
+        	librarySystem('testKey2', [], function() {
+        		return 3;
+        	});
+        	librarySystem('test3', ['testKey','testKey2'], function(a,b) {
+  				return a + b;
+			});	
+			var b = librarySystem('test3');
+			eq(4,b)
+        },
+
+        'TEST4: it should update the library if the value of corresponding array item has changed': function() {
+        	librarySystem('test4', ['I should change'], function(a) {
+  				return a;
+			});
+			librarySystem('I should change', [], function() {
+  				return 'I have changed';
+			});
+			eq(librarySystem('test4'),'I have changed')
+        },
+
+		'TEST5: the callback function for each library should run only once. ': function() {
+			var counter = 0;
+			librarySystem('test5', [], function() {
+					counter++;
+			});
+			librarySystem('test5');
+			librarySystem('test5');
+			eq(counter,1)
+		    },
+	        
+    });
+
+</script>
