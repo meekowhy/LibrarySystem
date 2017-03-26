@@ -1,0 +1,145 @@
+
+<script src="TinyTestMod.js"></script>
+<script>
+
+(function() {
+
+  var libraryStorage = {};
+
+  function librarySystem(libraryName, array, callback) {
+    if (arguments.length > 1) {
+      saveLibrary(libraryName, array, callback);
+    } else {
+      return loadLibrary(libraryName);
+    }
+  }
+
+  function saveLibrary(libraryName, array, callback) {
+
+    var libraryName = libraryStorage[libraryName] = {};
+    var dependencies = libraryName['dependencies'] = array;
+    var dependencies_ids = libraryName['dependencies_ids'] = [];
+
+    if (array.length === 0) {
+      libraryName['string'] = callback();
+    } else {
+      for (var i = 0; i < array.length; i++) {
+        dependencies_ids.push(uuid());
+      }
+      libraryName['string'] = callback.apply(null, dependencies_ids);
+    }
+  }
+
+  function loadLibrary(libraryName) {
+    if (libraryStorage[libraryName] == undefined) {
+      return 'There is no such library'
+    } else {
+      var libraryName = libraryStorage[libraryName];
+      var dependencies = libraryName['dependencies'];
+      var dependencies_ids = libraryName['dependencies_ids'];
+      var string = libraryName['string'];
+      var dependenciesValues = dependencies.map(function(currentValue) {
+        if (libraryStorage[currentValue] == undefined) {
+          return 'undefined';
+        } else {
+          return libraryStorage[currentValue]['string'];
+        }
+
+      });
+      for (var i = 0; i < dependencies_ids.length; i++) {
+        string = string.replace(dependencies_ids[i], dependenciesValues[i])
+      }
+      return string;
+    }
+  }
+
+  function uuid() {
+
+    var i, random;
+    var uuid = '';
+
+    for (i = 0; i < 32; i++) {
+      random = Math.random() * 16 | 0;
+      if (i === 8 || i === 12 || i === 16 || i === 20) {
+        uuid += '-';
+      }
+      uuid += (i === 12 ? 4 : (i === 16 ? (random & 3 | 8) : random)).toString(16);
+    }
+
+    return uuid;
+  }
+
+  window.librarySystem = librarySystem;
+
+})();
+
+tests({
+
+  'TEST1: it should save a callback`s return value and return it back if provided with only 1 argument': function() {
+    librarySystem('app', [], function() {
+      return 'ppapp';
+    });
+    eq(librarySystem('app'), 'ppapp');
+  },
+
+  'TEST2: it should return a string with a `dependency` library value': function() {
+    librarySystem('dependency', [], function() {
+      return 'loaded dependency';
+    });
+
+    librarySystem('app', ['dependency'], function(dependency) {
+      return 'app with ' + dependency;
+    });
+
+    eq(librarySystem('app'),'app with loaded dependency'); 
+  },
+
+  'TEST3: it should accept more than one `dependencies`': function() {
+    librarySystem('name', [], function() {
+      return 'Gordon';
+    });
+
+    librarySystem('company', [], function() {
+      return 'Watch and Code';
+    });
+
+    librarySystem('workBlurb', ['name', 'company'], function(name, company) {
+      return name + ' works at ' + company;
+    });
+
+    eq(librarySystem('workBlurb'),'Gordon works at Watch and Code'); 
+  },
+
+  'TEST4: it should update the library if the value of `dependency` library has changed': function() {
+    librarySystem('workBlurb', ['name', 'company'], function(name, company) {
+      return name + ' works at ' + company;
+    });
+
+    librarySystem('name', [], function() {
+      return 'Jake';
+    });
+
+    librarySystem('company', [], function() {
+      return 'Google';
+    });
+
+    eq(librarySystem('workBlurb'),'Jake works at Google');
+  },
+
+  'TEST5: the callback function for each library should run only once. ': function() {
+    var counter = 0;
+    librarySystem('test5', ['something'], function(a) {
+      counter++;
+      return a;
+    });
+    librarySystem('test5');
+    librarySystem('test5');
+    librarySystem('test5');
+    eq(counter, 1);
+  },
+
+});
+
+
+    
+</script>
