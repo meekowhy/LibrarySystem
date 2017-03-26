@@ -24,9 +24,9 @@
       libraryName['string'] = callback();
     } else {
       for (var i = 0; i < array.length; i++) {
-        dependencies_ids.push(uuid());
+        dependencies_ids.push(uuid()); //generates unique id string for each dependency
       }
-      libraryName['string'] = callback.apply(null, dependencies_ids);
+      libraryName['string'] = callback.apply(null, dependencies_ids); //saves a string with unique ids, later to be replaced by real values. 
     }
   }
 
@@ -47,7 +47,7 @@
 
       });
       for (var i = 0; i < dependencies_ids.length; i++) {
-        string = string.replace(dependencies_ids[i], dependenciesValues[i])
+        string = string.replace(dependencies_ids[i], dependenciesValues[i]) //replaces unique ids with real values
       }
       return string;
     }
